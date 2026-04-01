@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURE ACCESS • System Monitoring</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&amp;display=swap');
+
+        :root {
+            --red: #ff0033;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            color: #fff;
+            font-family: 'VT323', monospace;
+            cursor: none;
+            user-select: none;
+        }
+
+        /* PHASE 1: PRIVACY ACCESS REQUEST */
+        #privacy-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #111111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 1.5s ease;
+        }
+
+        .privacy-card {
+            width: 640px;
+            background: #1a1a1a;
+            border: 4px solid var(--red);
+            padding: 40px 50px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(255, 0, 51, 0.6);
+        }
+
+        .privacy-card h1 {
+            font-size: 2.4rem;
+            color: var(--red);
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px var(--red);
+        }
+
+        .privacy-card p {
+            font-size: 1.6rem;
+            line-height: 1.4;
+            margin-bottom: 30px;
+            color: #ddd;
+        }
+
+        .permission-list {
+            text-align: left;
+            font-size: 1.5rem;
+            margin: 25px 0;
+            color: #aaa;
+        }
+
+        .permission-list li {
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .grant-btn {
+            width: 100%;
+            padding: 22px;
+            font-size: 2.2rem;
+            background: transparent;
+            border: 4px solid var(--red);
+            color: var(--red);
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            cursor: none;
+            animation: button-flicker 1.2s infinite alternate;
+        }
+
+        @keyframes button-flicker {
+            0% { opacity: 1; }
+            14% { opacity: 0.3; }
+            15% { opacity: 1; }
+            42% { opacity: 1; }
+            43% { opacity: 0.25; }
+            44% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        /* PHASE 2: DASHBOARD */
+        #dashboard-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0f0f0f;
+            display: none;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #1a0000;
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--red);
+            font-size: 1.8rem;
+        }
+
+        .header span {
+            color: var(--red);
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            padding: 30px;
+            gap: 30px;
+        }
+
+        /* CAMERA FEED */
+        #camera-feed {
+            width: 680px;
+            height: 480px;
+            background: #111;
+            border: 8px solid #300000;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px var(--red);
+        }
+
+        #camera-feed::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: 
+                linear-gradient(rgba(255,255,255,0.12) 50%, transparent 50%),
+                linear-gradient(90deg, rgba(255,0,51,0.1) 50%, transparent 50%);
+            background-size: 100% 14px, 14px 100%;
+            animation: vhs-scan 0.15s linear infinite;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.7;
+        }
+
+        #camera-feed::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.9) 100%);
+            z-index: 3;
+            animation: static-noise 0.4s steps(12) infinite;
+            pointer-events: none;
+        }
+
+        .feed-inner {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #222 url('https://picsum.photos/id/1016/680/480') center/cover;
+            filter: contrast(1.3) brightness(0.6);
+            z-index: 1;
+        }
+
+        /* MOVING SHADOWS IN FEED */
+        .shadow {
+            position: absolute;
+            top: 18%;
+            left: -30%;
+            width: 280px;
+            height: 420px;
+            background: linear-gradient(transparent, rgba(10,10,10,0.95), transparent);
+            filter: blur(18px);
+            opacity: 0;
+            z-index: 4;
+            animation: shadow-creep 9s linear infinite;
+        }
+
+        .shadow2 {
+            animation-delay: 3.2s;
+            top: 32%;
+            left: -40%;
+            width: 220px;
+            height: 380px;
+        }
+
+        @keyframes shadow-creep {
+            0%   { opacity: 0; transform: translateX(0); }
+            15%  { opacity: 0.75; }
+            40%  { opacity: 0.75; transform: translateX(380px); }
+            55%  { opacity: 0; }
+            100% { opacity: 0; transform: translateX(380px); }
+        }
+
+        @keyframes vhs-scan {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 0 100%, 0 100%; }
+        }
+
+        @keyframes static-noise {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.85; }
+        }
+
+        /* STATUS PANEL */
+        .status-panel {
+            flex: 1;
+            background: #1a1a1a;
+            border: 4px solid #300000;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log {
+            flex: 1;
+            font-size: 1.65rem;
+            line-height: 1.6;
+            color: #ff6666;
+            overflow: hidden;
+        }
+
+        .log-line {
+            animation: log-flicker 0.6s infinite alternate;
+        }
+
+        /* PROGRESS BAR */
+        .progress-container {
+            margin-top: 30px;
+        }
+
+        .progress-label {
+            font-size: 1.9rem;
+            color: var(--red);
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px var(--red);
+        }
+
+        .progress-bar-bg {
+            height: 22px;
+            background: #222;
+            border: 4px solid var(--red);
+            position: relative;
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--red), #ff6699);
+            box-shadow: 0 0 25px var(--red);
+            transition: width 1.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        /* JUMPSCARE */
+        #jumpscare-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100000;
+            overflow: hidden;
+        }
+
+        #jumpscare-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: contrast(1.5) brightness(0.65);
+        }
+
+        .scare-active {
+            animation: horror-shake 0.45s cubic-bezier(.36,.07,.19,.97) both infinite;
+        }
+
+        @keyframes horror-shake {
+            10%, 90% { transform: translate3d(-6px, 3px, 0); }
+            20%, 80% { transform: translate3d(6px, -4px, 0); }
+            30%, 50%, 70% { transform: translate3d(-8px, 5px, 0); }
+            40%, 60% { transform: translate3d(8px, -5px, 0); }
+        }
+
+        /* GASLIGHT: FAKE GOOGLE HOMEPAGE */
+        #gaslight-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #fff;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #202124;
+            z-index: 100001;
+            cursor: default;
+        }
+
+        .google-logo {
+            font-size: 6.5rem;
+            font-weight: 400;
+            letter-spacing: -6px;
+            margin-bottom: 30px;
+        }
+
+        .google-logo span:nth-child(1) { color: #4285f4; }
+        .google-logo span:nth-child(2) { color: #ea4335; }
+        .google-logo span:nth-child(3) { color: #fbbc05; }
+        .google-logo span:nth-child(4) { color: #4285f4; }
+        .google-logo span:nth-child(5) { color: #34a853; }
+        .google-logo span:nth-child(6) { color: #ea4335; }
+
+        .search-bar {
+            width: 620px;
+            height: 56px;
+            border: 1px solid #dfe1e5;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 1px 6px rgba(32,33,36,.28);
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 1.3rem;
+            padding-left: 12px;
+            background: transparent;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 14px;
+        }
+
+        .buttons button {
+            padding: 12px 24px;
+            background: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            color: #3c4043;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #f2f2f2;
+            padding: 14px 30px;
+            font-size: 1.1rem;
+            color: #70757a;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PHASE 1: PRIVACY ACCESS REQUEST -->
+    <div id="privacy-screen">
+        <div class="privacy-card">
+            <h1>🔴 PRIVACY ACCESS REQUEST</h1>
+            <p>This site needs permission to monitor your system for security purposes.</p>
+            
+            <ul class="permission-list">
+                <li>✅ Camera &amp; Microphone</li>
+                <li>✅ Screen &amp; Cursor Tracking</li>
+                <li>✅ Environmental Audio</li>
+                <li>✅ Full Device Access</li>
+            </ul>
+
+            <button id="grant-btn" class="grant-btn">
+                GRANT FULL ACCESS
+            </button>
+            <p style="margin-top:20px; font-size:1.3rem; color:#666;">Deny → Session will be terminated</p>
+        </div>
+    </div>
+
+    <!-- PHASE 2: DASHBOARD -->
+    <div id="dashboard-screen">
+        <div class="header">
+            <div>SYSTEM MONITORING v0.9.3 <span>LIVE</span></div>
+            <div>CONNECTED • 00:00:07</div>
+        </div>
+
+        <div class="main-content">
+            <!-- CAMERA FEED -->
+            <div id="camera-feed">
+                <div class="feed-inner"></div>
+                <div class="shadow"></div>
+                <div class="shadow shadow2"></div>
+            </div>
+
+            <!-- STATUS PANEL -->
+            <div class="status-panel">
+                <h2 style="color:#ff6666; font-size:2rem; margin-bottom:15px;">LIVE ANALYSIS</h2>
+                <div id="log" class="log"></div>
+
+                <div class="progress-container">
+                    <div class="progress-label" id="progress-text">ANALYZING SUBJECT... 99%</div>
+                    <div class="progress-bar-bg">
+                        <div id="progress-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JUMPSCARE -->
+    <div id="jumpscare-screen">
+        <img id="jumpscare-image" src="https://picsum.photos/id/1015/1920/1080" alt="">
+    </div>
+
+    <!-- GASLIGHT: FAKE GOOGLE -->
+    <div id="gaslight-screen">
+        <div class="google-logo">
+            <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+        </div>
+        
+        <div class="search-bar">
+            <span style="font-size:1.8rem;">🔍</span>
+            <input type="text" value="Everything seems normal..." readonly>
+        </div>
+
+        <div class="buttons">
+            <button>Google Search</button>
+            <button>I'm Feeling Lucky</button>
+        </div>
+
+        <div class="footer">
+            <div>United States</div>
+            <div>
+                Advertising • Business • How Search works • Privacy • Terms
+            </div>
+            <div>Settings</div>
+        </div>
+    </div>
+
+    <!-- LAGGED RED DOT CURSOR -->
+    <div id="custom-cursor"></div>
+
+    <script>
+        // PLACEHOLDERS — REPLACE THESE WITH YOUR OWN FILES
+        const WHISPER_URL = "https://example.com/subtle-whisper.mp3";   // low creepy whispering loop
+        const SCREAM_URL = "https://example.com/distorted-female-scream.mp3";
+        const LAUGH_URL = "https://example.com/creepy-laugh.mp3";
+
+        let whisperAudio = null;
+        let screamAudio = null;
+        let laughAudio = null;
+
+        let targetX = 0, targetY = 0;
+        let currentX = 0, currentY = 0;
+        const lagFactor = 0.84; // creates ~0.5s delay feel
+
+        const privacyScreen = document.getElementById('privacy-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const jumpscareScreen = document.getElementById('jumpscare-screen');
+        const gaslightScreen = document.getElementById('gaslight-screen');
+        const customCursor = document.getElementById('custom-cursor');
+        const progressBar = document.getElementById('progress-bar');
+        const logContainer = document.getElementById('log');
+        const jumpscareImage = document.getElementById('jumpscare-image');
+
+        const messages = [
+            "CHECKING ENVIRONMENT...",
+            "SUBJECT IDENTIFIED.",
+            "ACCESSING WEBCAM FEED...",
+            "BIOMETRICS MATCHING...",
+            "PRESENCE DETECTED.",
+            "YOU ARE NOT ALONE."
+        ];
+        let messageIndex = 0;
+
+        function createAudio(url) {
+            const audio = new Audio(url);
+            audio.volume = 0.7;
+            audio.preload = "auto";
+            return audio;
+        }
+
+        function initLaggedCursor() {
+            customCursor.style.display = 'block';
+            customCursor.style.position = 'fixed';
+            customCursor.style.width = '18px';
+            customCursor.style.height = '18px';
+            customCursor.style.background = 'radial-gradient(circle, #ff0033 40%, transparent 70%)';
+            customCursor.style.borderRadius = '50%';
+            customCursor.style.boxShadow = '0 0 18px #ff0033';
+            customCursor.style.pointerEvents = 'none';
+            customCursor.style.zIndex = '999999';
+            customCursor.style.opacity = '0.85';
+
+            document.addEventListener('mousemove', (e) => {
+                targetX = e.clientX;
+                targetY = e.clientY;
+            });
+
+            function animateCursor() {
+                currentX = currentX * lagFactor + targetX * (1 - lagFactor);
+                currentY = currentY * lagFactor + targetY * (1 - lagFactor);
+                customCursor.style.left = `${currentX}px`;
+                customCursor.style.top = `${currentY}px`;
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+        }
+
+        function updateLog() {
+            logContainer.innerHTML = '';
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.textContent = messages[messageIndex];
+            logContainer.appendChild(line);
+            messageIndex = (messageIndex + 1) % messages.length;
+        }
+
+        function startFreezeSequence() {
+            // Progress bar freezes at 99%
+            progressBar.style.width = '99%';
+
+            // Start subtle whispering (loop)
+            if (whisperAudio) {
+                whisperAudio.loop = true;
+                whisperAudio.volume = 0.25;
+                whisperAudio.play().catch(() => {});
+            }
+
+            // Messages keep flickering
+            const logInterval = setInterval(updateLog, 1600);
+
+            // 10 seconds of tension → CLIMAX
+            setTimeout(() => {
+                clearInterval(logInterval);
+                triggerClimax();
+            }, 10000);
+        }
+
+        function forceCursorToCenter() {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // Instantly force the visual cursor to center (overrides lag for dramatic effect)
+            targetX = centerX;
+            targetY = centerY;
+            currentX = centerX;
+            currentY = centerY;
+            customCursor.style.left = `${centerX}px`;
+            customCursor.style.top = `${centerY}px`;
+        }
+
+        function triggerClimax() {
+            // Force cursor to center
+            forceCursorToCenter();
+
+            // Hide dashboard
+            dashboardScreen.style.display = 'none';
+
+            // Show terrifying face
+            jumpscareImage.src = "https://picsum.photos/id/1015/1920/1080"; // ← REPLACE with your terrifying face
+            jumpscareScreen.style.display = 'flex';
+
+            // Play scream
+            if (screamAudio) {
+                screamAudio.currentTime = 0;
+                screamAudio.volume = 1;
+                screamAudio.play().catch(() => {});
+            }
+
+            // Violent shake
+            document.body.classList.add('scare-active');
+
+            // Stop whisper
+            if (whisperAudio) whisperAudio.pause();
+
+            // Hold for 3 seconds then gaslight
+            setTimeout(() => {
+                document.body.classList.remove('scare-active');
+                jumpscareScreen.style.display = 'none';
+                showGaslight();
+            }, 3000);
+        }
+
+        function showGaslight() {
+            gaslightScreen.style.display = 'flex';
+            customCursor.style.display = 'none'; // normal cursor now
+
+            // 10 seconds of false safety → creepy laugh
+            setTimeout(() => {
+                if (laughAudio) {
+                    laughAudio.volume = 0.9;
+                    laughAudio.play().catch(() => {});
+                }
+                console.log('%c👁️ hehehe… you thought it was over 👁️', 'color:#ff0033;font-size:18px;font-family:monospace');
+            }, 10000);
+        }
+
+        // START THE NIGHTMARE
+        function grantAccess() {
+            privacyScreen.style.opacity = '0';
+
+            setTimeout(() => {
+                privacyScreen.style.display = 'none';
+                dashboardScreen.style.display = 'flex';
+
+                // Initialize everything after first user interaction
+                initLaggedCursor();
+
+                whisperAudio = createAudio(WHISPER_URL);
+                screamAudio = createAudio(SCREAM_URL);
+                laughAudio = createAudio(LAUGH_URL);
+
+                // Start log messages
+                updateLog();
+                setInterval(updateLog, 2200);
+
+                // Progress bar fills quickly then freezes
+                setTimeout(() => {
+                    progressBar.style.width = '99%';
+                    startFreezeSequence();
+                }, 800);
+            }, 1500);
+        }
+
+        // EVENT LISTENERS
+        window.onload = () => {
+            document.getElementById('grant-btn').addEventListener('click', grantAccess);
+            
+            console.log('%c✅ System Monitoring initialized. Grant access to begin.', 'color:#ff0033;font-size:13px');
+        };
+    </script>
+</body>
+</html>
